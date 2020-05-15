@@ -1,0 +1,33 @@
+'Description: Electric Heating Command Program
+'Flow Type: Looping
+'Triggers: none
+'  This program controls the Electric Heating Command output based on a signal from a heating load sequencer. 
+'  It also modulates the heating modulation output.
+'Version 1.0
+
+Numeric Input ClgLoad, SaFanSts, UnitEna, HtgClgMd, DxClgCmdSpt, DxClgCmdDif, DxClgCmdMinTime
+Numeric Output DxClg1Cmd, DxClg2Cmd
+
+Initialize:
+    If SaFanSts and UnitEna then
+        Goto NormalMode
+    Else
+        Goto OffMode
+  Endif
+
+NormalMode:
+ If (not SaFanSts or not UnitEna or not HtgClgMd) then goto OffMode
+ Stage1Dx = DxClg1Cmd * (ClgLoad >= (DxClg1CmdSpt-DxClgCmdDif/2) + (not DxClg1Cmd) * (ClgLoad >= (DxClg1CmdSpt+DxClgCmdDif/2) 'Two Position DX1 Command
+ Stage2Dx = DxClg2Cmd * (ClgLoad >= (DxClg2CmdSpt-DxClgCmdDif/2) + (not DxClg2Cmd) * (ClgLoad >= (DxClg2CmdSpt+DxClgCmdDif/2) 'Two Position DX2 Command
+ Goto TimeDelay
+
+TimeDelay:
+ If TS> DxClgCmdMinTime Then Goto NormalMode
+
+OffMode:
+ If (SaFanSts and UnitEna and HtgClgMd) then goto NormalMode
+ Turn Off DxClg1Cmd
+ Turn Off DxClg2Cmd
+ 
+E:
+ If TS > 30 then goto Initialize
